@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "current_feature": "core-infrastructure",
+  "features": [
+    {
+      "id": "core-infrastructure",
+      "title": "Core Infrastructure: FastAPI backend + React frontend skeleton with SQLite storage",
+      "status": "in_progress",
+      "acceptance": [
+        "FastAPI server starts on port 8000 with /health endpoint",
+        "React dev server starts on port 3000 and proxies API calls",
+        "SQLite database initializes with sessions, observations, and projects tables",
+        "One end-to-end workflow: create session -> add observation -> retrieve context"
+      ],
+      "implementation": [],
+      "tests": []
+    },
+    {
+      "id": "observer-pipeline",
+      "title": "Observer Response Pipeline: classify outputs, preserve batches on failure, bound history",
+      "status": "planned",
+      "acceptance": [
+        "Output classifier distinguishes valid, skip, idle, auth, overflow, xml_drift, prose_salvageable, prose",
+        "Policy table maps each class to {preserve|confirm|abort} batch decision",
+        "Token budget enforced on conversation history with truncation"
+      ],
+      "implementation": [],
+      "tests": []
+    },
+    {
+      "id": "session-management",
+      "title": "Session Management: create, resume, complete sessions with context injection",
+      "status": "planned",
+      "acceptance": [
+        "Session CRUD API with project association",
+        "Context injection retrieves relevant observations for a query",
+        "Session completion marks status and triggers summarization"
+      ],
+      "implementation": [],
+      "tests": []
+    },
+    {
+      "id": "hook-integration",
+      "title": "Hook Integration: thin, fail-open Claude Code hooks",
+      "status": "planned",
+      "acceptance": [
+        "Hook wrapper adds <60ms overhead on Unix, <300ms on Windows",
+        "Worker unavailable returns {continue:true} exit 0, never exit 2",
+        "No login shell spawn in common path"
+      ],
+      "implementation": [],
+      "tests": []
+    }
+  ]
+}
