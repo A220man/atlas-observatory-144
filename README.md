@@ -1,2 +1,6 @@
-# atlas-observatory-144
-Ryan Vo | Persistent Context Across Sessions for Every Agent –  Captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions. Works with Claude Code, OpenClaw, Codex, Gemini, Hermes, Copilot, OpenCode + More
+# atlas-observatory-144 — Ryan Vo
+
+> Work in progress. This checkpoint may be incomplete or fail tests. See PLAN.md and STATUS.md before use.
+
+
+Maintainer: Ryan Vo <ryandtvo@gmail.com>
