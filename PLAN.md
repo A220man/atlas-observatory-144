@@ -4,13 +4,13 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-core-infrastructure
+observer-pipeline
 
 ## Roadmap
 
 ### core-infrastructure — Core Infrastructure: FastAPI backend + React frontend skeleton with SQLite storage
 
-Status: in_progress
+Status: done
 
 Acceptance:
 - FastAPI server starts on port 8000 with /health endpoint
@@ -18,14 +18,22 @@ Acceptance:
 - SQLite database initializes with sessions, observations, and projects tables
 - One end-to-end workflow: create session -> add observation -> retrieve context
 
+Implementation: `backend/main.py`, `frontend/src/App.tsx`, `frontend/vite.config.ts`
+
+Tests: `backend/test_main.py`, `test_backend.py`
+
 ### observer-pipeline — Observer Response Pipeline: classify outputs, preserve batches on failure, bound history
 
-Status: planned
+Status: done
 
 Acceptance:
 - Output classifier distinguishes valid, skip, idle, auth, overflow, xml_drift, prose_salvageable, prose
 - Policy table maps each class to {preserve|confirm|abort} batch decision
 - Token budget enforced on conversation history with truncation
+
+Implementation: `backend/observer_pipeline.py`
+
+Tests: `backend/test_observer_pipeline.py`
 
 ### session-management — Session Management: create, resume, complete sessions with context injection
 

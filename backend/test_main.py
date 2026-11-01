@@ -1,6 +1,11 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-from main import app
+from main import app, init_db
+
+@pytest.fixture(autouse=True)
+async def setup_db():
+    await init_db()
+    yield
 
 @pytest.mark.asyncio
 async def test_health():
@@ -11,6 +16,7 @@ async def test_health():
 
 @pytest.mark.asyncio
 async def test_full_workflow():
+    await init_db()  # Ensure DB is initialized for this test
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/projects", json={"name": "Test Project", "path": "/tmp/test"})
         assert response.status_code == 200
