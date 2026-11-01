@@ -4,7 +4,7 @@ from typing import Optional, List
 import aiosqlite
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 DB_PATH = "atlas.db"
@@ -105,7 +105,7 @@ async def health():
 async def create_project(project: ProjectCreate):
     async with aiosqlite.connect(DB_PATH) as db:
         pid = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         await db.execute(
             "INSERT INTO projects (id, name, path, created_at) VALUES (?, ?, ?, ?)",
             (pid, project.name, project.path, now)
@@ -129,7 +129,7 @@ async def create_session(session: SessionCreate):
         if not await cursor.fetchone():
             raise HTTPException(404, "Project not found")
         sid = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         await db.execute(
             "INSERT INTO sessions (id, project_id, title, status, created_at) VALUES (?, ?, ?, 'active', ?)",
             (sid, session.project_id, session.title, now)
@@ -154,7 +154,7 @@ async def complete_session(session_id: str):
         cursor = await db.execute("SELECT id FROM sessions WHERE id = ?", (session_id,))
         if not await cursor.fetchone():
             raise HTTPException(404, "Session not found")
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         await db.execute("UPDATE sessions SET status = 'completed', completed_at = ? WHERE id = ?", (now, session_id))
         await db.commit()
         return {"status": "completed", "session_id": session_id, "completed_at": now}
@@ -166,7 +166,7 @@ async def create_observation(obs: ObservationCreate):
         if not await cursor.fetchone():
             raise HTTPException(404, "Session not found")
         oid = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         await db.execute(
             "INSERT INTO observations (id, session_id, type, title, narrative, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (oid, obs.session_id, obs.type, obs.title, obs.narrative, json.dumps(obs.metadata) if obs.metadata else None, now)

@@ -1,31 +1,31 @@
 {
   "schema_version": 1,
-  "current_feature": "core-infrastructure",
+  "current_feature": "observer-pipeline",
   "features": [
     {
       "id": "core-infrastructure",
       "title": "Core Infrastructure: FastAPI backend + React frontend skeleton with SQLite storage",
-      "status": "in_progress",
+      "status": "done",
       "acceptance": [
         "FastAPI server starts on port 8000 with /health endpoint",
         "React dev server starts on port 3000 and proxies API calls",
         "SQLite database initializes with sessions, observations, and projects tables",
         "One end-to-end workflow: create session -> add observation -> retrieve context"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": ["backend/main.py", "frontend/src/App.tsx", "frontend/vite.config.ts"],
+      "tests": ["backend/test_main.py", "test_backend.py"]
     },
     {
       "id": "observer-pipeline",
       "title": "Observer Response Pipeline: classify outputs, preserve batches on failure, bound history",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Output classifier distinguishes valid, skip, idle, auth, overflow, xml_drift, prose_salvageable, prose",
         "Policy table maps each class to {preserve|confirm|abort} batch decision",
         "Token budget enforced on conversation history with truncation"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": ["backend/observer_pipeline.py"],
+      "tests": ["backend/test_observer_pipeline.py"]
     },
     {
       "id": "session-management",
