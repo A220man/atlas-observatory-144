@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "observer-pipeline",
+  "current_feature": "session-management",
   "features": [
     {
       "id": "core-infrastructure",
@@ -30,14 +30,14 @@
     {
       "id": "session-management",
       "title": "Session Management: create, resume, complete sessions with context injection",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Session CRUD API with project association",
         "Context injection retrieves relevant observations for a query",
         "Session completion marks status and triggers summarization"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": ["backend/main.py"],
+      "tests": ["backend/test_main.py", "test_backend.py"]
     },
     {
       "id": "hook-integration",

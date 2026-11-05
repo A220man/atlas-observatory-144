@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-observer-pipeline
+session-management
 
 ## Roadmap
 
@@ -37,12 +37,16 @@ Tests: `backend/test_observer_pipeline.py`
 
 ### session-management — Session Management: create, resume, complete sessions with context injection
 
-Status: planned
+Status: done
 
 Acceptance:
 - Session CRUD API with project association
 - Context injection retrieves relevant observations for a query
 - Session completion marks status and triggers summarization
+
+Implementation: `backend/main.py`
+
+Tests: `backend/test_main.py`, `test_backend.py`
 
 ### hook-integration — Hook Integration: thin, fail-open Claude Code hooks
 
