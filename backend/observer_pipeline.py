@@ -9,11 +9,15 @@ class OutputClass(Enum):
     """Classification of model output."""
     VALID = "valid"
     SKIP = "skip"
+    EMPTY_REQUEST = "empty_request"
     IDLE = "idle"
     AUTH = "auth"
+    QUOTA = "quota"
     OVERFLOW = "overflow"
     XML_DRIFT = "xml_drift"
     PROSE_SALVAGEABLE = "prose_salvageable"
+    MODEL_ERROR = "model_error"
+    TRANSPORT = "transport"
     PROSE = "prose"
 
 
@@ -53,20 +57,21 @@ class TokenBudget:
             return content
         return content[:max_chars - 50] + "\n... [truncated] ..."
 
-
 # Policy table: maps output class to batch decision and abort reason
 POLICY_TABLE: Dict[OutputClass, Dict[str, Any]] = {
     OutputClass.VALID: {"decision": BatchDecision.CONFIRM, "abort_reason": None},
     OutputClass.SKIP: {"decision": BatchDecision.CONFIRM, "abort_reason": None},
+    OutputClass.EMPTY_REQUEST: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.IDLE: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.AUTH: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
+    OutputClass.QUOTA: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.OVERFLOW: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.XML_DRIFT: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.PROSE_SALVAGEABLE: {"decision": BatchDecision.CONFIRM, "abort_reason": None},
+    OutputClass.MODEL_ERROR: {"decision": BatchDecision.ABORT, "abort_reason": "model_error:provider_error"},
+    OutputClass.TRANSPORT: {"decision": BatchDecision.PRESERVE, "abort_reason": None},
     OutputClass.PROSE: {"decision": BatchDecision.ABORT, "abort_reason": "prose:unclassified_output"},
 }
-
-
 def classify_output(text: str) -> ClassificationResult:
     """
     Classify model output into one of the OutputClass categories.
@@ -74,8 +79,8 @@ def classify_output(text: str) -> ClassificationResult:
     """
     if not text or not text.strip():
         return ClassificationResult(
-            output_class=OutputClass.IDLE,
-            decision=POLICY_TABLE[OutputClass.IDLE]["decision"],
+            output_class=OutputClass.EMPTY_REQUEST,
+            decision=POLICY_TABLE[OutputClass.EMPTY_REQUEST]["decision"],
             confidence=1.0
         )
     
@@ -117,6 +122,23 @@ def classify_output(text: str) -> ClassificationResult:
                 decision=POLICY_TABLE[OutputClass.AUTH]["decision"],
                 confidence=0.9
             )
+
+    # Check for quota errors
+    quota_patterns = [
+        r'quota.*exceed',
+        r'rate limit',
+        r'too many requests',
+        r'\b429\b',
+        r'quota exceeded',
+        r'rate limited',
+    ]
+    for pattern in quota_patterns:
+        if re.search(pattern, text_stripped, re.IGNORECASE):
+            return ClassificationResult(
+                output_class=OutputClass.QUOTA,
+                decision=POLICY_TABLE[OutputClass.QUOTA]["decision"],
+                confidence=0.9
+            )
     
     # Check for context overflow
     overflow_patterns = [
@@ -149,8 +171,8 @@ def classify_output(text: str) -> ClassificationResult:
     for pattern in model_error_patterns:
         if re.search(pattern, text_stripped, re.IGNORECASE):
             return ClassificationResult(
-                output_class=OutputClass.PROSE,
-                decision=POLICY_TABLE[OutputClass.PROSE]["decision"],
+                output_class=OutputClass.MODEL_ERROR,
+                decision=POLICY_TABLE[OutputClass.MODEL_ERROR]["decision"],
                 abort_reason="model_error:provider_error",
                 confidence=0.8
             )
@@ -167,8 +189,8 @@ def classify_output(text: str) -> ClassificationResult:
     for pattern in transport_patterns:
         if re.search(pattern, text_stripped, re.IGNORECASE):
             return ClassificationResult(
-                output_class=OutputClass.AUTH,
-                decision=POLICY_TABLE[OutputClass.AUTH]["decision"],
+                output_class=OutputClass.TRANSPORT,
+                decision=POLICY_TABLE[OutputClass.TRANSPORT]["decision"],
                 confidence=0.8
             )
     
@@ -307,7 +329,8 @@ def truncate_history(history: List[Dict[str, Any]], budget: TokenBudget) -> List
 def process_model_output(
     text: str,
     history: Optional[List[Dict[str, Any]]] = None,
-    budget: Optional[TokenBudget] = None
+    budget: Optional[TokenBudget] = None,
+    consecutive_invalid: int = 0
 ) -> Dict[str, Any]:
     """
     Main entry point: classify output, apply policy, enforce token budget.
@@ -319,10 +342,35 @@ def process_model_output(
     classification = classify_output(text)
     policy = POLICY_TABLE[classification.output_class]
     
+    # Track consecutive invalid outputs
+    # Classes that count as invalid: PROSE, XML_DRIFT, MODEL_ERROR
+    invalid_classes = {OutputClass.PROSE, OutputClass.XML_DRIFT, OutputClass.MODEL_ERROR}
+    if classification.output_class in invalid_classes:
+        consecutive_invalid += 1
+    else:
+        consecutive_invalid = 0
+    
+    # Abort after 3 consecutive invalid outputs
+    if consecutive_invalid >= 3:
+        if classification.output_class == OutputClass.XML_DRIFT:
+            abort_reason = "drift:observer_schema"
+        elif classification.output_class == OutputClass.OVERFLOW:
+            abort_reason = "overflow:context_window"
+        else:
+            abort_reason = f"consecutive_invalid:{classification.output_class.value}"
+        return {
+            "classification": classification.output_class.value,
+            "decision": BatchDecision.ABORT.value,
+            "confidence": classification.confidence,
+            "abort_reason": abort_reason,
+            "consecutive_invalid": consecutive_invalid,
+        }
+    
     result = {
         "classification": classification.output_class.value,
         "decision": policy["decision"].value,
         "confidence": classification.confidence,
+        "consecutive_invalid": consecutive_invalid,
     }
     
     if policy["abort_reason"]:

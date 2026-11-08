@@ -27,9 +27,10 @@ Tests: `backend/test_main.py`, `test_backend.py`
 Status: done
 
 Acceptance:
-- Output classifier distinguishes valid, skip, idle, auth, overflow, xml_drift, prose_salvageable, prose
+- Output classifier distinguishes valid, skip, empty_request, idle, auth, quota, overflow, xml_drift, prose_salvageable, model_error, transport, prose
 - Policy table maps each class to {preserve|confirm|abort} batch decision
 - Token budget enforced on conversation history with truncation
+- Consecutive invalid output tracking aborts after 3 with typed abort reason (drift:*, overflow:*)
 
 Implementation: `backend/observer_pipeline.py`
 
