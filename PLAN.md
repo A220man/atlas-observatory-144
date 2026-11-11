@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-session-management
+hook-integration
 
 ## Roadmap
 
@@ -51,10 +51,14 @@ Tests: `backend/test_main.py`, `test_backend.py`
 
 ### hook-integration — Hook Integration: thin, fail-open Claude Code hooks
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Hook wrapper adds <60ms overhead on Unix, <300ms on Windows
 - Worker unavailable returns {continue:true} exit 0, never exit 2
 - No login shell spawn in common path
+
+Implementation: `backend/hook_wrapper.py`
+
+Tests: `backend/test_hook_wrapper.py`
 

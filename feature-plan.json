@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "session-management",
+  "current_feature": "hook-integration",
   "features": [
     {
       "id": "core-infrastructure",
@@ -43,14 +43,14 @@
     {
       "id": "hook-integration",
       "title": "Hook Integration: thin, fail-open Claude Code hooks",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": [
         "Hook wrapper adds <60ms overhead on Unix, <300ms on Windows",
         "Worker unavailable returns {continue:true} exit 0, never exit 2",
         "No login shell spawn in common path"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": ["backend/hook_wrapper.py"],
+      "tests": ["backend/test_hook_wrapper.py"]
     }
   ]
 }
