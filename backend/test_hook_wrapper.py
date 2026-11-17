@@ -1,17 +1,10 @@
 import pytest
 import json
+import subprocess
 import sys
 sys.path.insert(0, '/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend')
 
-from hook_wrapper import (
-    fallback_response,
-    handle_session_start,
-    handle_user_prompt_submit,
-    handle_pre_tool_use,
-    handle_post_tool_use,
-    handle_stop,
-    handle_notification,
-)
+from hook_wrapper import fallback_response
 
 class TestHookWrapper:
     """Test hook wrapper behavior."""
@@ -24,34 +17,84 @@ class TestHookWrapper:
         assert result["reason"] == "test_reason"
 
     @pytest.mark.asyncio
-    async def test_pre_tool_use_always_continue(self):
-        """PreToolUse always returns continue=true."""
-        result = json.loads(await handle_pre_tool_use({"tool": "Read", "input": {}}))
+    async def test_cli_session_start(self):
+        """CLI invocation with session_start returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "session_start"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+        assert result["reason"] == "session_start_ok"
 
     @pytest.mark.asyncio
-    async def test_post_tool_use_always_continue(self):
-        """PostToolUse always returns continue=true."""
-        result = json.loads(await handle_post_tool_use({"tool": "Write", "input": {}}))
+    async def test_cli_pre_tool_use(self):
+        """CLI invocation with pre_tool_use returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "pre_tool_use"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+        assert result["reason"] == "pre_tool_use_ok"
 
     @pytest.mark.asyncio
-    async def test_stop_always_continue(self):
-        """Stop always returns continue=true."""
-        result = json.loads(await handle_stop({"session_id": "test"}))
+    async def test_cli_post_tool_use(self):
+        """CLI invocation with post_tool_use returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "post_tool_use"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+        assert result["reason"] == "post_tool_use_ok"
 
     @pytest.mark.asyncio
-    async def test_notification_always_continue(self):
-        """Notification always returns continue=true."""
-        result = json.loads(await handle_notification({}))
+    async def test_cli_stop(self):
+        """CLI invocation with stop returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "stop"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+        assert result["reason"] == "stop_ok"
 
     @pytest.mark.asyncio
-    async def test_user_prompt_submit_always_continue(self):
-        """UserPromptSubmit always returns continue=true."""
-        result = json.loads(await handle_user_prompt_submit({"prompt": "test"}))
+    async def test_cli_notification(self):
+        """CLI invocation with notification returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "notification"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+        assert result["reason"] == "notification_ok"
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    @pytest.mark.asyncio
+    async def test_cli_unknown(self):
+        """CLI invocation with unknown hook type returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "unknown_type"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
+        assert result["continue"] is True
+        assert result["reason"] == "unknown_hook_type"
+
+    @pytest.mark.asyncio
+    async def test_cli_no_args(self):
+        """CLI invocation with no hook type returns continue=true."""
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py"],
+            capture_output=True, text=True, timeout=5
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
+        assert result["continue"] is True
