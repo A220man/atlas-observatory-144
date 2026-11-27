@@ -1,8 +1,16 @@
 # Changelog
 
+## 1.7.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.6.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+### hook-integration (in_progress)
+- Hook wrapper honors `CLAUDE_MEM_DISABLE` / `CLAUDE_MEM_DISABLE_TOOL_HOOKS`: zero-work short-circuit returning {continue:true} exit 0 before stdin read.
+- Tests: backend/test_hook_wrapper.py (10 passing).
 
 ## 1.5.0 — work-in-progress checkpoint
 
