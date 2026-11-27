@@ -98,3 +98,34 @@ class TestHookWrapper:
         assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
         result = json.loads(proc.stdout.strip())
         assert result["continue"] is True
+
+    @pytest.mark.asyncio
+    async def test_cli_disabled_env_short_circuits(self):
+        """CLAUDE_MEM_DISABLE short-circuits to continue=true without reading stdin."""
+        import os
+        env = dict(os.environ)
+        env["CLAUDE_MEM_DISABLE"] = "1"
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "session_start"],
+            capture_output=True, text=True, timeout=5, env=env,
+            input="this-is-not-json-stdin"
+        )
+        assert proc.returncode == 0, f"Expected exit 0, got {proc.returncode}: {proc.stdout} {proc.stderr}"
+        result = json.loads(proc.stdout.strip())
+        assert result["continue"] is True
+        assert result["reason"] == "hooks_disabled"
+
+    @pytest.mark.asyncio
+    async def test_disable_tool_hooks_alias(self):
+        """CLAUDE_MEM_DISABLE_TOOL_HOOKS also short-circuits."""
+        import os
+        env = dict(os.environ)
+        env["CLAUDE_MEM_DISABLE_TOOL_HOOKS"] = "1"
+        proc = subprocess.run(
+            [sys.executable, "/var/lib/alan-portfolio/workspaces/ryan/atlas-observatory-144/backend/hook_wrapper.py", "post_tool_use"],
+            capture_output=True, text=True, timeout=5, env=env,
+        )
+        assert proc.returncode == 0
+        result = json.loads(proc.stdout.strip())
+        assert result["continue"] is True
+        assert result["reason"] == "hooks_disabled"

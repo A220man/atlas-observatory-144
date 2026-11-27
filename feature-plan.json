@@ -12,8 +12,15 @@
         "SQLite database initializes with sessions, observations, and projects tables",
         "One end-to-end workflow: create session -> add observation -> retrieve context"
       ],
-      "implementation": ["backend/main.py", "frontend/src/App.tsx", "frontend/vite.config.ts"],
-      "tests": ["backend/test_main.py", "test_backend.py"]
+      "implementation": [
+        "backend/main.py",
+        "frontend/src/App.tsx",
+        "frontend/vite.config.ts"
+      ],
+      "tests": [
+        "backend/test_main.py",
+        "test_backend.py"
+      ]
     },
     {
       "id": "observer-pipeline",
@@ -25,8 +32,12 @@
         "Token budget enforced on conversation history with truncation",
         "Consecutive invalid output tracking aborts after 3 with typed abort reason (drift:*, overflow:*)"
       ],
-      "implementation": ["backend/observer_pipeline.py"],
-      "tests": ["backend/test_observer_pipeline.py"]
+      "implementation": [
+        "backend/observer_pipeline.py"
+      ],
+      "tests": [
+        "backend/test_observer_pipeline.py"
+      ]
     },
     {
       "id": "session-management",
@@ -37,8 +48,13 @@
         "Context injection retrieves relevant observations for a query",
         "Session completion marks status and triggers summarization"
       ],
-      "implementation": ["backend/main.py"],
-      "tests": ["backend/test_main.py", "test_backend.py"]
+      "implementation": [
+        "backend/main.py"
+      ],
+      "tests": [
+        "backend/test_main.py",
+        "test_backend.py"
+      ]
     },
     {
       "id": "hook-integration",
@@ -49,8 +65,12 @@
         "Worker unavailable returns {continue:true} exit 0, never exit 2",
         "No login shell spawn in common path"
       ],
-      "implementation": ["backend/hook_wrapper.py"],
-      "tests": ["backend/test_hook_wrapper.py"]
+      "implementation": [
+        "backend/hook_wrapper.py"
+      ],
+      "tests": [
+        "backend/test_hook_wrapper.py"
+      ]
     }
   ]
 }

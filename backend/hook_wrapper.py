@@ -18,7 +18,19 @@ def fallback_response(reason: str) -> str:
     """Always return continue=true with exit 0."""
     return json.dumps({"continue": True, "suppressOutput": True, "reason": reason})
 
+def hooks_disabled() -> bool:
+    """True when the operator has disabled hooks (zero-work short-circuit)."""
+    return (
+        os.environ.get("CLAUDE_MEM_DISABLE", "").strip() not in ("", "0", "false", "False")
+        or os.environ.get("CLAUDE_MEM_DISABLE_TOOL_HOOKS", "").strip() not in ("", "0", "false", "False")
+    )
+
 async def main():
+    # Zero-work path: do not read stdin, do not import handlers.
+    if hooks_disabled():
+        print(fallback_response("hooks_disabled"))
+        return
+
     if len(sys.argv) < 2:
         print(fallback_response("missing_hook_type"))
         return
